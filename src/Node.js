@@ -1,4 +1,6 @@
 import BaseElement from "./BaseElement";
+import {nedGraph} from "./NedGraph";
+import NodeInputGroup from "./NodeInputGroup";
 
 export default class Node extends BaseElement{
   constructor(name){
@@ -15,26 +17,36 @@ export default class Node extends BaseElement{
     outDom.innerHTML = '&nbsp;';
     this.domElement.appendChild(outDom);
 
+    // Create input group container element
+    this._inputGroupContainerElement = document.createElement("div");
+    this._inputGroupContainerElement.classList.add("nodeInputGroupContainer");
+    this.domElement.appendChild(this._inputGroupContainerElement);
+
     // Output Click handler
-    outDom.onclick = (e) => {
-      this.onClick(e);
-    }
+    outDom.onclick = (e) => this.onClick(e);
 
     // Node Stuffs
     this.name = name;
     this.value = '';
-    this.inputs = [];
+    this.inputGroups = {};
     this.connected = false;
 
     // SVG Connectors
     this.attachedPaths = [];
+
+    // Add to nedGraph
+    this.index = nedGraph.nodes.length;
+    nedGraph.nodes.push(this);
+
+    // Set class name as attribute
+    this.domElement.setAttribute("data-nodeType",this.constructor.name);
   }
 
   onClick(e){
-    if(this._nedGraph.mouse.currentInput &&
-      !this.ownsInput(this._nedGraph.mouse.currentInput)){
-      var tmp = this._nedGraph.mouse.currentInput;
-      this._nedGraph.mouse.currentInput = null;
+    if(nedGraph.mouse.currentInput &&
+      !this.ownsInput(nedGraph.mouse.currentInput)){
+      var tmp = nedGraph.mouse.currentInput;
+      nedGraph.mouse.currentInput = null;
       this.connectTo(tmp);
     }
     e.stopPropagation();
@@ -48,14 +60,6 @@ export default class Node extends BaseElement{
       y: offset.top + tmp.offsetHeight / 2
     };
   }
-
-  addInput(name){
-    var input = this._nedGraph.addNodeInput(name);
-    this.inputs.push(input);
-    this.domElement.appendChild(input.domElement);
-
-    return input;
-  };
 
   detachInput(input){
     var index = -1;
@@ -76,9 +80,11 @@ export default class Node extends BaseElement{
   };
 
   ownsInput(input){
-    for(var i = 0; i < this.inputs.length; i++){
-      if(this.inputs[i] == input)
-        return true;
+    for(var k in this.inputGroups){
+      for(var i = 0; i < this.inputGroups[k].inputs.length; i++){
+        if(this.inputGroups[k].inputs[i] == input)
+          return true;
+      }
     }
     return false;
   };
@@ -93,13 +99,15 @@ export default class Node extends BaseElement{
       aPaths[i].path.setAttributeNS(null, 'd', pathStr);
     }
 
-    for(var j = 0; j < this.inputs.length; j++){
-      if(this.inputs[j].node != null){
-        var iP = this.inputs[j].getAttachPoint();
-        var oP = this.inputs[j].node.getOutputPoint();
+    for(var k in this.inputGroups){
+      for(var j = 0; j < this.inputGroups[k].inputs.length; j++){
+        if(this.inputGroups[k].inputs[j].node != null){
+          var iP = this.inputGroups[k].inputs[j].getAttachPoint();
+          var oP = this.inputGroups[k].inputs[j].node.getOutputPoint();
 
-        var pStr = this.createPath(iP, oP);
-        this.inputs[j].path.setAttributeNS(null, 'd', pStr);
+          var pStr = this.createPath(iP, oP);
+          this.inputGroups[k].inputs[j].path.setAttributeNS(null, 'd', pStr);
+        }
       }
     }
   }
@@ -161,5 +169,10 @@ export default class Node extends BaseElement{
     document.body.appendChild(this.domElement);
     // Update Visual
     this.updatePosition();
+  }
+
+  addInputGroup(name){
+    let group = new NodeInputGroup(this,name);
+    this.inputGroups[name] = group;
   }
 }

@@ -1,12 +1,12 @@
 import BaseElement from "./BaseElement";
+import {nedGraph} from "./NedGraph";
 
 export default class NodeInput extends BaseElement{
-  constructor(name, nedGraph){
+  constructor(name){
     super();
 
     this.name = name;
     this.node = null;
-    this._nedGraph = nedGraph;
 
     // The dom element, here is where we could add
     // different input types
@@ -16,21 +16,25 @@ export default class NodeInput extends BaseElement{
     this.domElement.classList.add('empty');
 
     // SVG Connector
-    this.path = document.createElementNS(this._nedGraph.svg.ns, 'path');
+    this.path = document.createElementNS(nedGraph.svg.ns, 'path');
     this.path.setAttributeNS(null, 'stroke', '#8e8e8e');
     this.path.setAttributeNS(null, 'stroke-width', '2');
     this.path.setAttributeNS(null, 'fill', 'none');
-    this._nedGraph.svg.appendChild(this.path);
+    nedGraph.svg.appendChild(this.path);
 
     // DOM Event handlers
     this.domElement.onclick = (e) => {
       this.onClick(e);
     }
+
+    // Add to nedGraph
+    this.index = nedGraph.nodeInputs.length;
+    nedGraph.nodeInputs.push(this);
   }
 
   onClick(e){
-    var mouse = this._nedGraph.mouse;
-    console.log(mouse);
+    var mouse = nedGraph.mouse;
+
     if(mouse.currentInput){
       if(mouse.currentInput.path.hasAttribute('d')) {
         mouse.currentInput.path.removeAttribute('d');
