@@ -10,3 +10,6 @@ NedJS began as an ES6 conversion of the "[Node Editor UI](https://codepen.io/xgu
 ## Instructions
 To see an example of the tool, open demo/index.html in your browser. 
 Make changes to demo/app/main.js and compile with webpack.
+
+## Example
+Visit [NedJS Demo](http://rawgit.com/ajveach/nedjs/master/demo/index.html) to see the included demo.
