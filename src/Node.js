@@ -6,24 +6,34 @@ export default class Node extends BaseElement{
   constructor(name){
     super();
 
+    this.domElements = {};
+
     // DOM Element creation
-    this.domElement = document.createElement('div');
-    this.domElement.classList.add('node');
-    this.domElement.setAttribute('title', name);
+    this.domElements.container = document.createElement('div');
+    this.domElements.container.classList.add('node');
+    this.domElements.container.setAttribute('title', name);
+
+    // Create name display
+    this.domElements.name = document.createElement("input");
+    this.domElements.name.classList.add("nodeName");
+    this.domElements.name.setAttribute("type","text");
+    this.domElements.container.appendChild(this.domElements.name);
+    this.domElements.name.ondblclick = (e) => this.handleNameDblClick(e);
+    this.domElements.name.onkeyup = (e) => this.handleNameKeyup(e);
 
     // Create output visual
-    var outDom = document.createElement('span');
-    outDom.classList.add('output');
-    outDom.innerHTML = '&nbsp;';
-    this.domElement.appendChild(outDom);
+    this.domElements.output = document.createElement('span');
+    this.domElements.output.classList.add('output');
+    this.domElements.output.innerHTML = '&nbsp;';
+    this.domElements.container.appendChild(this.domElements.output);
 
     // Create input group container element
-    this._inputGroupContainerElement = document.createElement("div");
-    this._inputGroupContainerElement.classList.add("nodeInputGroupContainer");
-    this.domElement.appendChild(this._inputGroupContainerElement);
+    this.domElements.inputGroupContainer = document.createElement("div");
+    this.domElements.inputGroupContainer.classList.add("nodeInputGroupContainer");
+    this.domElements.container.appendChild(this.domElements.inputGroupContainer);
 
     // Output Click handler
-    outDom.onclick = (e) => this.onClick(e);
+    this.domElements.output.onclick = (e) => this.handleOutDomClick(e);
 
     // Node Stuffs
     this.name = name;
@@ -39,13 +49,44 @@ export default class Node extends BaseElement{
     nedGraph.nodes.push(this);
 
     // Set class name as attribute
-    this.domElement.setAttribute("data-nodeType",this.constructor.name);
+    this.domElements.container.setAttribute("data-nodeType",this.constructor.name);
   }
 
-  onClick(e){
+  get name(){
+    return this._name;
+  }
+  set name(value){
+    this._name = value;
+    this.domElements.name.setAttribute("value",this._name);
+  }
+
+  handleNameDblClick(e){
+    e.stopPropagation();
+
+    this.domElements.name.focus();
+  }
+
+  handleNameKeyup(e){
+    // Array of key codes that will trigger input submission
+    let submitKeys = [13];
+    // Array of key codes that will trigger input cancellation
+    let cancelKeys = [27];
+
+    if(submitKeys.indexOf(e.keyCode) >= 0){
+      // Trigger name change
+      this.name = this.domElements.name.value;
+      this.domElements.name.blur();
+    }
+    else if(cancelKeys.indexOf(e.keyCode) >= 0){
+      this.domElements.name.blur();
+      this.domElements.name.value = this.name;
+    }
+  }
+
+  handleOutDomClick(e){
     if(nedGraph.mouse.currentInput &&
       !this.ownsInput(nedGraph.mouse.currentInput)){
-      var tmp = nedGraph.mouse.currentInput;
+      let tmp = nedGraph.mouse.currentInput;
       nedGraph.mouse.currentInput = null;
       this.connectTo(tmp);
     }
@@ -53,8 +94,8 @@ export default class Node extends BaseElement{
   };
 
   getOutputPoint(){
-    var tmp = this.domElement.firstElementChild;
-    var offset = this.GetFullOffset(tmp);
+    let tmp = this.domElements.output;
+    let offset = this.GetFullOffset(tmp);
     return {
       x: offset.left + tmp.offsetWidth / 2,
       y: offset.top + tmp.offsetHeight / 2
@@ -63,7 +104,7 @@ export default class Node extends BaseElement{
 
   detachInput(input){
     var index = -1;
-    for(var i = 0; i < this.attachedPaths.length; i++){
+    for(let i = 0; i < this.attachedPaths.length; i++){
       if(this.attachedPaths[i].input == input)
         index = i;
     };
@@ -75,13 +116,13 @@ export default class Node extends BaseElement{
     }
 
     if(this.attachedPaths.length <= 0){
-      this.domElement.classList.remove('connected');
+      this.domElements.container.classList.remove('connected');
     }
   };
 
   ownsInput(input){
-    for(var k in this.inputGroups){
-      for(var i = 0; i < this.inputGroups[k].inputs.length; i++){
+    for(let k in this.inputGroups){
+      for(let i = 0; i < this.inputGroups[k].inputs.length; i++){
         if(this.inputGroups[k].inputs[i] == input)
           return true;
       }
@@ -90,22 +131,22 @@ export default class Node extends BaseElement{
   };
 
   updatePosition(){
-    var outPoint = this.getOutputPoint();
+    let outPoint = this.getOutputPoint();
 
-    var aPaths = this.attachedPaths;
-    for(var i = 0; i < aPaths.length; i++){
-      var iPoint = aPaths[i].input.getAttachPoint();
-      var pathStr = this.createPath(iPoint, outPoint);
+    let aPaths = this.attachedPaths;
+    for(let i = 0; i < aPaths.length; i++){
+      let iPoint = aPaths[i].input.getAttachPoint();
+      let pathStr = this.createPath(iPoint, outPoint);
       aPaths[i].path.setAttributeNS(null, 'd', pathStr);
     }
 
-    for(var k in this.inputGroups){
-      for(var j = 0; j < this.inputGroups[k].inputs.length; j++){
+    for(let k in this.inputGroups){
+      for(let j = 0; j < this.inputGroups[k].inputs.length; j++){
         if(this.inputGroups[k].inputs[j].node != null){
-          var iP = this.inputGroups[k].inputs[j].getAttachPoint();
-          var oP = this.inputGroups[k].inputs[j].node.getOutputPoint();
+          let iP = this.inputGroups[k].inputs[j].getAttachPoint();
+          let oP = this.inputGroups[k].inputs[j].node.getOutputPoint();
 
-          var pStr = this.createPath(iP, oP);
+          let pStr = this.createPath(iP, oP);
           this.inputGroups[k].inputs[j].path.setAttributeNS(null, 'd', pStr);
         }
       }
@@ -113,12 +154,12 @@ export default class Node extends BaseElement{
   }
 
   createPath(a, b){
-    var diff = {
+    let diff = {
       x: b.x - a.x,
       y: b.y - a.y
     };
 
-    var pathStr = 'M' + a.x + ',' + a.y + ' ';
+    let pathStr = 'M' + a.x + ',' + a.y + ' ';
     pathStr += 'C';
     pathStr += a.x + diff.x / 3 * 2 + ',' + a.y + ' ';
     pathStr += a.x + diff.x / 3 + ',' + b.y + ' ';
@@ -130,7 +171,7 @@ export default class Node extends BaseElement{
   connectTo(input){
     input.node = this;
     this.connected = true;
-    this.domElement.classList.add('connected');
+    this.domElements.container.classList.add('connected');
 
     input.domElement.classList.remove('empty');
     input.domElement.classList.add('filled');
@@ -140,23 +181,23 @@ export default class Node extends BaseElement{
       path: input.path
     });
 
-    var iPoint = input.getAttachPoint();
-    var oPoint = this.getOutputPoint();
+    let iPoint = input.getAttachPoint();
+    let oPoint = this.getOutputPoint();
 
-    var pathStr = this.createPath(iPoint, oPoint);
+    let pathStr = this.createPath(iPoint, oPoint);
 
     input.path.setAttributeNS(null, 'd',pathStr);
   }
 
   moveTo(point){
-    this.domElement.style.top = point.y + 'px';
-    this.domElement.style.left = point.x + 'px';
+    this.domElements.container.style.top = point.y + 'px';
+    this.domElements.container.style.left = point.x + 'px';
     this.updatePosition();
   };
 
   initUI() {
     // Make draggable
-    $(this.domElement).draggable({
+    $(this.domElements.container).draggable({
       containment: 'window',
       cancel: '.connection,.output',
       drag: (event, ui) => {
@@ -164,9 +205,9 @@ export default class Node extends BaseElement{
       }
     });
     // Fix positioning
-    this.domElement.style.position = 'absolute';
+    this.domElements.container.style.position = 'absolute';
 
-    document.body.appendChild(this.domElement);
+    document.body.appendChild(this.domElements.container);
     // Update Visual
     this.updatePosition();
   }

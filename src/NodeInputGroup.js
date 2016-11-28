@@ -10,7 +10,7 @@ export default class NodeInputGroup{
     // Create container element
     let containerElement = document.createElement("div");
     containerElement.classList.add("nodeInputGroup");
-    this.node._inputGroupContainerElement.appendChild(containerElement);
+    this.node.domElements.inputGroupContainer.appendChild(containerElement);
     this.domElements.container = containerElement;
 
     // Create add input element

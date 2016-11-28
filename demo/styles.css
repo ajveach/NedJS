@@ -8,7 +8,9 @@ body{
     display:none;
 }
 
-.node:before{
+
+/** Node Styles **/
+/*.node:before{
     content:attr(title) " ";
     display: block;
     border-top-left-radius:.75em;
@@ -16,13 +18,26 @@ body{
     background-color:#6e6e6e;
     padding: .3em .5em;
     margin:-.1em -.3em 0.2em;
-}
+}*/
 .node{
     background-color: #4e4e4e;
     border-radius: .75em;
     display: inline-block;
-    padding:0.1em .3em .25em;
+    padding:0;
     position:absolute;
+}
+.node .nodeName{
+    display: block;
+    border-top-left-radius: .75em;
+    border-top-right-radius: .75em;
+    background-color: #6e6e6e;
+    padding: .3em .5em;
+    margin: 0 0 .5em;
+    border: 0;
+    color: #d4d4d4;
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
 }
 .output,
 .connection:after{
@@ -55,9 +70,13 @@ body{
 }
 .connection:after{
     content:"";
-    right:0em;
+    right:-.5em;
     top:0.25em;
 }
+.nodeInputGroupContainer{
+    padding: 0 .5em .5em;
+}
+
 svg{
     position:absolute;
     top:0px;
@@ -125,6 +144,8 @@ svg{
 .nodeInputGroup:before{
     content: attr(title) " ";
     display: block;
+    border-bottom: 1px solid #777;
+    margin-bottom: .3em;
 }
 .addNodeInputButton{
     position: absolute;
